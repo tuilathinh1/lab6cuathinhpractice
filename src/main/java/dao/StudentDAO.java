@@ -136,4 +136,186 @@ public class StudentDAO {
             return false;
         }
     }
+    // Search students across code, name, and email
+    public List<Student> searchStudents(String keyword) {
+        List<Student> students = new ArrayList<>();
+        
+        // SQL query using LIKE operator for 3 columns with OR logic
+        // Ordered by id descending as requested
+        String sql = "SELECT * FROM students WHERE student_code LIKE ? OR full_name LIKE ? OR email LIKE ? ORDER BY id DESC";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            // Prepare the search pattern with wildcards (%)
+            // If keyword is "Minh", pattern becomes "%Minh%"
+            String searchPattern = "%" + keyword + "%";
+            
+            // Set the same pattern for all three placeholders (?)
+            pstmt.setString(1, searchPattern); // For student_code
+            pstmt.setString(2, searchPattern); // For full_name
+            pstmt.setString(3, searchPattern); // For email
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Student student = new Student();
+                    student.setId(rs.getInt("id"));
+                    student.setStudentCode(rs.getString("student_code"));
+                    student.setFullName(rs.getString("full_name"));
+                    student.setEmail(rs.getString("email"));
+                    student.setMajor(rs.getString("major"));
+                    student.setCreatedAt(rs.getTimestamp("created_at"));
+                    students.add(student);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return students;
+    }
+
+    // Helper 1: Validate Column Name (Security)
+    // Prevents SQL Injection since we can't use ? for column names
+    private String validateSortBy(String sortBy) {
+        String[] validColumns = {"id", "student_code", "full_name", "email", "major"};
+        
+        if (sortBy != null) {
+            for (String col : validColumns) {
+                if (col.equals(sortBy)) {
+                    return col;
+                }
+            }
+        }
+        return "id"; // Default column
+    }
+
+    // Helper 2: Validate Order Direction
+    private String validateOrder(String order) {
+        if ("desc".equalsIgnoreCase(order)) {
+            return "DESC";
+        }
+        return "ASC"; // Default order
+    }
+
+    // Method 1: Get Students Sorted (Requirement 7.1.1)
+    public List<Student> getStudentsSorted(String sortBy, String order) {
+        List<Student> students = new ArrayList<>();
+        
+        // 1. Validate inputs
+        String validSortBy = validateSortBy(sortBy);
+        String validOrder = validateOrder(order);
+        
+        // 2. Build SQL dynamically (Safe because we validated the strings above)
+        String sql = "SELECT * FROM students ORDER BY " + validSortBy + " " + validOrder;
+        
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                Student student = new Student();
+                student.setId(rs.getInt("id"));
+                student.setStudentCode(rs.getString("student_code"));
+                student.setFullName(rs.getString("full_name"));
+                student.setEmail(rs.getString("email"));
+                student.setMajor(rs.getString("major"));
+                student.setCreatedAt(rs.getTimestamp("created_at"));
+                students.add(student);
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return students;
+    }
+
+    // Method 2: Filter Students by Major (Requirement 7.1.2)
+    public List<Student> getStudentsByMajor(String major) {
+        List<Student> students = new ArrayList<>();
+        
+        // 1. SQL with WHERE clause
+        String sql = "SELECT * FROM students WHERE major = ? ORDER BY id DESC";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            // 2. Set parameter
+            pstmt.setString(1, major);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Student student = new Student();
+                    student.setId(rs.getInt("id"));
+                    student.setStudentCode(rs.getString("student_code"));
+                    student.setFullName(rs.getString("full_name"));
+                    student.setEmail(rs.getString("email"));
+                    student.setMajor(rs.getString("major"));
+                    student.setCreatedAt(rs.getTimestamp("created_at"));
+                    students.add(student);
+                }
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return students;
+    }
+    // Method 1: Get Total Count
+    // Executes: SELECT COUNT(*) FROM students
+    public int getTotalStudents() {
+        String sql = "SELECT COUNT(*) FROM students";
+        int count = 0;
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                // Return the count as integer
+                count = rs.getInt(1); 
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
+    // Method 2: Get Paginated Results
+    // Signature: public List<Student> getStudentsPaginated(int offset, int limit)
+    public List<Student> getStudentsPaginated(int offset, int limit) {
+        List<Student> students = new ArrayList<>();
+        
+        // Use SQL: SELECT * FROM students ORDER BY id DESC LIMIT ? OFFSET ?
+        // Note: MySQL requires LIMIT before OFFSET
+        String sql = "SELECT * FROM students ORDER BY id DESC LIMIT ? OFFSET ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            // limit: number of records (e.g., 10)
+            pstmt.setInt(1, limit);
+            // offset: starting position (e.g., 0, 10, 20)
+            pstmt.setInt(2, offset); 
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Student student = new Student();
+                    student.setId(rs.getInt("id"));
+                    student.setStudentCode(rs.getString("student_code"));
+                    student.setFullName(rs.getString("full_name"));
+                    student.setEmail(rs.getString("email"));
+                    student.setMajor(rs.getString("major"));
+                    student.setCreatedAt(rs.getTimestamp("created_at"));
+                    students.add(student);
+                }
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return students;
+    }
 }

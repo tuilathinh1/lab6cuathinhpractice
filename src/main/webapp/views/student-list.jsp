@@ -145,6 +145,45 @@
             font-size: 64px;
             margin-bottom: 20px;
         }
+        
+        /*add css 5.3*/
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .search-form {
+            display: flex;
+            gap: 10px;
+        }
+        .search-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 250px;
+        }
+        /*add css 8.3*/
+        .pagination-link {
+            text-decoration: none; 
+            padding: 8px 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            color: #667eea;
+            background-color: white;
+        }
+        .pagination-active {
+            font-weight: bold;
+            color: white; 
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        .pagination-disabled {
+            color: #ccc; 
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -167,11 +206,57 @@
         </c:if>
         
         <!-- Add New Student Button -->
-        <div style="margin-bottom: 20px;">
+        <div class="toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <a href="student?action=new" class="btn btn-primary">
                 ➕ Add New Student
             </a>
+            <!-- Add Filter -->
+            <form action="student" method="GET">
+                <input type="hidden" name="action" value="filter">
+                <select name="major" class="filter-select" onchange="this.form.submit()">
+                    <option value="">--- Filter by Major ---</option>
+                    <option value="Computer Science" ${selectedMajor == 'Computer Science' ? 'selected' : ''}>
+                        Computer Science
+                    </option>
+                    <option value="Information Technology" ${selectedMajor == 'Information Technology' ? 'selected' : ''}>
+                        Information Technology
+                    </option>
+                    <option value="Software Engineering" ${selectedMajor == 'Software Engineering' ? 'selected' : ''}>
+                        Software Engineering
+                    </option>
+                    <option value="Business Administration" ${selectedMajor == 'Business Administration' ? 'selected' : ''}>
+                        Business Administration
+                    </option>
+                </select>
+            </form>
+            <!-- Add Search -->
+            <form action="student" method="GET" style="display: flex; gap: 10px;">
+
+                <input type="hidden" name="action" value="search">
+
+                <input type="text" 
+                       name="keyword" 
+                       placeholder="Enter name, email..." 
+                       value="${keyword}" 
+                       style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
+
+                <button type="submit" class="btn btn-secondary">
+                    🔍 Search
+                </button>
+
+                <c:if test="${not empty keyword}">
+                    <a href="student?action=list" class="btn btn-danger" style="display: flex; align-items: center;">
+                        Clear
+                    </a>
+                </c:if>
+            </form>
         </div>
+
+        <c:if test="${not empty keyword}">
+            <div style="margin-bottom: 15px; padding: 10px; background-color: #e9ecef; border-radius: 5px; color: #495057;">
+                ℹ️ Search results for: <strong>"${keyword}"</strong>
+            </div>
+        </c:if>
         
         <!-- Student Table -->
         <c:choose>
@@ -179,11 +264,41 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Student Code</th>
-                            <th>Full Name</th>
-                            <th>Email</th>
-                            <th>Major</th>
+                            <th>
+                                <a href="student?action=sort&sortBy=id&order=${sortBy == 'id' && order == 'asc' ? 'desc' : 'asc'}" 
+                                   style="color: white; text-decoration: none;">
+                                    ID ${sortBy == 'id' ? (order == 'asc' ? '⬆️' : '⬇️') : ''}
+                                </a>
+                            </th>
+                            
+                            <th>
+                                <a href="student?action=sort&sortBy=student_code&order=${sortBy == 'student_code' && order == 'asc' ? 'desc' : 'asc'}"
+                                   style="color: white; text-decoration: none;">
+                                    Student Code ${sortBy == 'student_code' ? (order == 'asc' ? '⬆️' : '⬇️') : ''}
+                                </a>
+                            </th>
+                            
+                            <th>
+                                <a href="student?action=sort&sortBy=full_name&order=${sortBy == 'full_name' && order == 'asc' ? 'desc' : 'asc'}"
+                                   style="color: white; text-decoration: none;">
+                                    Full Name ${sortBy == 'full_name' ? (order == 'asc' ? '⬆️' : '⬇️') : ''}
+                                </a>
+                            </th>
+                            
+                            <th>
+                                <a href="student?action=sort&sortBy=email&order=${sortBy == 'email' && order == 'asc' ? 'desc' : 'asc'}"
+                                   style="color: white; text-decoration: none;">
+                                    Email ${sortBy == 'email' ? (order == 'asc' ? '⬆️' : '⬇️') : ''}
+                                </a>
+                            </th>
+                            
+                            <th>
+                                <a href="student?action=sort&sortBy=major&order=${sortBy == 'major' && order == 'asc' ? 'desc' : 'asc'}"
+                                   style="color: white; text-decoration: none;">
+                                    Major ${sortBy == 'major' ? (order == 'asc' ? '⬆️' : '⬇️') : ''}
+                                </a>
+                            </th>
+                            
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -211,6 +326,44 @@
                         </c:forEach>
                     </tbody>
                 </table>
+                     <!--8.3-->
+                    <c:if test="${totalPages > 1}">
+                    <div class="pagination-container" style="display: flex; justify-content: center; margin-top: 30px; flex-direction: column; align-items: center; gap: 10px;">
+                        <nav>
+                            <ul class="pagination" style="list-style: none; padding: 0; margin: 0; display: flex; gap: 5px;">
+                                
+                                <li class="page-item">
+                                    <a class="pagination-link ${currentPage <= 1 ? 'pagination-disabled' : ''}" 
+                                       href="student?action=list&page=${currentPage - 1}&sortBy=${sortBy}&order=${order}&major=${selectedMajor}&keyword=${keyword}">
+                                        &laquo; Previous
+                                    </a>
+                                </li>
+                                
+                                <c:forEach begin="1" end="${totalPages}" var="i">
+                                    <li class="page-item">
+                                        <a class="pagination-link ${i == currentPage ? 'pagination-active' : ''}" 
+                                           href="student?action=list&page=${i}&sortBy=${sortBy}&order=${order}&major=${selectedMajor}&keyword=${keyword}">
+                                            ${i}
+                                        </a>
+                                    </li>
+                                </c:forEach>
+                                
+                                <li class="page-item">
+                                    <a class="pagination-link ${currentPage >= totalPages ? 'pagination-disabled' : ''}" 
+                                       href="student?action=list&page=${currentPage + 1}&sortBy=${sortBy}&order=${order}&major=${selectedMajor}&keyword=${keyword}">
+                                        Next &raquo;
+                                    </a>
+                                </li>
+                                
+                            </ul>
+                        </nav>
+                        
+                        <div style="color: #666; font-size: 14px;">
+                            Page ${currentPage} of ${totalPages}
+                        </div>
+                    </div>
+                </c:if>
+                     
             </c:when>
             <c:otherwise>
                 <div class="empty-state">

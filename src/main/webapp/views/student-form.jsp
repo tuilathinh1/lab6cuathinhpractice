@@ -121,6 +121,14 @@
             color: #666;
             margin-top: 5px;
         }
+        /* 6.3*/
+        .error-message {
+            color: #dc3545;       /* Red color */
+            font-size: 13px;      /* Smaller text */
+            margin-top: 5px;
+            font-weight: 600;
+            display: block;       /* Force it to a new line */
+        }
     </style>
 </head>
 <body>
@@ -155,8 +163,11 @@
                        id="studentCode" 
                        name="studentCode" 
                        value="${student.studentCode}"
-                       ${student != null ? 'readonly' : 'required'}
                        placeholder="e.g., SV001, IT123">
+                       
+                <c:if test="${not empty errorCode}">
+                    <span class="error-message">⚠️ ${errorCode}</span>
+                </c:if>
                 <p class="info-text">Format: 2 letters + 3+ digits</p>
             </div>
             
@@ -169,8 +180,11 @@
                        id="fullName" 
                        name="fullName" 
                        value="${student.fullName}"
-                       required
                        placeholder="Enter full name">
+                       
+                <c:if test="${not empty errorName}">
+                    <span class="error-message">⚠️ ${errorName}</span>
+                </c:if>
             </div>
             
             <!-- Email -->
@@ -178,12 +192,15 @@
                 <label for="email">
                     Email <span class="required">*</span>
                 </label>
-                <input type="email" 
+                <input type="text" 
                        id="email" 
                        name="email" 
                        value="${student.email}"
-                       required
                        placeholder="student@example.com">
+                       
+                <c:if test="${not empty errorEmail}">
+                    <span class="error-message">⚠️ ${errorEmail}</span>
+                </c:if>
             </div>
             
             <!-- Major -->
@@ -191,7 +208,7 @@
                 <label for="major">
                     Major <span class="required">*</span>
                 </label>
-                <select id="major" name="major" required>
+                <select id="major" name="major">
                     <option value="">-- Select Major --</option>
                     <option value="Computer Science" 
                             ${student.major == 'Computer Science' ? 'selected' : ''}>
@@ -210,6 +227,10 @@
                         Business Administration
                     </option>
                 </select>
+                
+                <c:if test="${not empty errorMajor}">
+                    <span class="error-message">⚠️ ${errorMajor}</span>
+                </c:if>
             </div>
             
             <!-- Buttons -->
